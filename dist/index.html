@@ -1,0 +1,342 @@
+﻿<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Mur Video des Matieres</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap");
+
+      :root {
+        --bg-a: #f2eadf;
+        --bg-b: #d8e4dc;
+        --ink: #1f2623;
+        --muted: #4d5f58;
+        --card-bg: rgba(255, 253, 248, 0.8);
+        --card-border: rgba(31, 38, 35, 0.14);
+        --accent: #1f6a52;
+        --shadow: 0 12px 28px rgba(22, 30, 27, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 14% 8%, rgba(206, 126, 58, 0.2) 0%, rgba(206, 126, 58, 0) 38%),
+          radial-gradient(circle at 84% 18%, rgba(31, 106, 82, 0.2) 0%, rgba(31, 106, 82, 0) 42%),
+          linear-gradient(145deg, var(--bg-a), var(--bg-b));
+      }
+
+      .page {
+        width: min(1800px, 100% - 24px);
+        margin: 12px auto 16px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        box-shadow: var(--shadow);
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(28px, 4.6vw, 46px);
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .subtitle strong {
+        color: var(--accent);
+      }
+
+      .board {
+        display: grid;
+        gap: 16px;
+      }
+
+      .category {
+        display: grid;
+        gap: 10px;
+        padding: 0;
+        border-radius: 16px;
+        border: 1px solid rgba(31, 106, 82, 0.35);
+        background: linear-gradient(180deg, rgba(31, 106, 82, 0.1), rgba(255, 255, 255, 0.7));
+        box-shadow: 0 14px 30px rgba(22, 30, 27, 0.14);
+        overflow: hidden;
+      }
+
+      .category-title {
+        margin: 0;
+        font-size: 15px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #f4fbf7;
+      }
+
+      .category-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 12px 14px;
+        background: linear-gradient(120deg, #195c48, #2f7c63);
+      }
+
+      .category-count,
+      .subgroup-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .category-count {
+        color: #1f4236;
+        background: #d5efe5;
+      }
+
+      .subgroups {
+        display: grid;
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .subgroup {
+        display: grid;
+        gap: 8px;
+        padding: 0;
+        border-radius: 12px;
+        border: 1px solid rgba(31, 38, 35, 0.2);
+        background: rgba(255, 255, 255, 0.82);
+        overflow: hidden;
+      }
+
+      .subgroup-title {
+        margin: 0;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #2d3f38;
+      }
+
+      .subgroup-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 10px;
+        background: rgba(31, 106, 82, 0.14);
+        border-bottom: 1px solid rgba(31, 38, 35, 0.12);
+      }
+
+      .subgroup-count {
+        color: #214f3f;
+        background: rgba(255, 255, 255, 0.88);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 10px;
+        padding: 8px;
+      }
+
+      .tile {
+        display: grid;
+        gap: 7px;
+        padding: 8px;
+        border-radius: 14px;
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        box-shadow: 0 8px 20px rgba(22, 30, 27, 0.12);
+      }
+
+      .tile-name {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .media {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(31, 38, 35, 0.14);
+        background: #101614;
+        aspect-ratio: 16 / 9;
+        position: relative;
+      }
+
+      .media-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: saturate(0.92) contrast(1.05);
+      }
+
+      .media iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        pointer-events: none;
+        display: block;
+      }
+
+      .tile-name {
+        cursor: pointer;
+      }
+
+      .tile-name:hover {
+        color: var(--accent);
+      }
+
+      .viewer-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: rgba(11, 16, 14, 0.8);
+        backdrop-filter: blur(6px);
+      }
+
+      .viewer-overlay.is-open {
+        display: flex;
+      }
+
+      .viewer-dialog {
+        width: min(1200px, 100%);
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(18, 24, 22, 0.95);
+      }
+
+      .viewer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: #f5f7f5;
+      }
+
+      .viewer-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .viewer-close {
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: rgba(255, 255, 255, 0.08);
+        color: #f5f7f5;
+        border-radius: 10px;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+
+      .viewer-close:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .viewer-media {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+      }
+
+      .viewer-media iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          width: min(1800px, 100% - 12px);
+          margin: 8px auto 12px;
+        }
+
+        .head {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+        }
+
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .tile {
+          padding: 6px;
+          gap: 5px;
+        }
+
+        .tile-name {
+          font-size: 13px;
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="/deco-3d---Videos/assets/index-DGDxigMP.js"></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="head">
+        <h1>Mur Video des Matieres</h1>
+        <p class="subtitle">Toutes les vignettes sont visibles et animees en meme temps. <strong>Chargement optimise par lots.</strong></p>
+      </header>
+
+      <section class="board" id="materialsBoard" aria-label="Categories et matieres"></section>
+    </main>
+
+    <div class="viewer-overlay" id="viewerOverlay" aria-hidden="true">
+      <div class="viewer-dialog" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+        <div class="viewer-head">
+          <h2 class="viewer-title" id="viewerTitle"></h2>
+          <button class="viewer-close" id="viewerClose" type="button">Fermer</button>
+        </div>
+        <div class="viewer-media" id="viewerMedia"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

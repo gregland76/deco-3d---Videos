@@ -1,5 +1,5 @@
 ﻿import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/deco-3d/",
+  base: "/deco-3d---Videos/",
 });

@@ -281,12 +281,42 @@
         border-radius: 12px;
         overflow: hidden;
         background: #000;
+        position: relative;
       }
 
       .viewer-media iframe {
         width: 100%;
         height: 100%;
         border: 0;
+      }
+
+      .viewer-loading {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at center, rgba(18, 24, 22, 0.35), rgba(6, 8, 8, 0.76));
+        transition: opacity 180ms ease;
+      }
+
+      .viewer-loading[hidden] {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .viewer-loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        border-top-color: #d5efe5;
+        border-radius: 50%;
+        animation: spin 750ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       @media (max-width: 640px) {
@@ -333,7 +363,11 @@
           <h2 class="viewer-title" id="viewerTitle"></h2>
           <button class="viewer-close" id="viewerClose" type="button">Fermer</button>
         </div>
-        <div class="viewer-media" id="viewerMedia"></div>
+        <div class="viewer-media" id="viewerMedia">
+          <div class="viewer-loading" id="viewerLoading" hidden aria-hidden="true">
+            <span class="viewer-loading-spinner" aria-label="Chargement"></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -395,11 +429,28 @@
       const board = document.getElementById("materialsBoard");
       const viewerOverlay = document.getElementById("viewerOverlay");
       const viewerMedia = document.getElementById("viewerMedia");
+      const viewerLoading = document.getElementById("viewerLoading");
       const viewerTitle = document.getElementById("viewerTitle");
       const viewerClose = document.getElementById("viewerClose");
       const thumbnailQueue = [];
+      const eagerQueue = [];
       let queueTimer = null;
       let queueIndex = 0;
+      let activeViewerSession = null;
+
+      function preconnect(url) {
+        const link = document.createElement("link");
+        link.rel = "preconnect";
+        link.href = url;
+        link.crossOrigin = "";
+        document.head.appendChild(link);
+      }
+
+      function warmupVideoHosts() {
+        preconnect("https://www.youtube.com");
+        preconnect("https://i.ytimg.com");
+        preconnect("https://www.google.com");
+      }
 
       function pickRandomVideoId() {
         const index = Math.floor(Math.random() * randomVideoIds.length);
@@ -430,10 +481,108 @@
         iframe.loading = "lazy";
         iframe.allow = "autoplay; encrypted-media; picture-in-picture";
         iframe.allowFullscreen = true;
+        iframe.addEventListener(
+          "load",
+          () => {
+            iframe.dataset.loaded = "1";
+          },
+          { once: true },
+        );
 
         media.innerHTML = "";
         media.appendChild(iframe);
         tile.dataset.hydrated = "1";
+      }
+
+      function hydrateTileVideoEager(tile, videoUrl, title) {
+        if (!tile || tile.dataset.hydrated === "1") {
+          return;
+        }
+
+        const media = tile.querySelector(".media");
+        if (!media) {
+          return;
+        }
+
+        const iframe = document.createElement("iframe");
+        iframe.title = title;
+        iframe.src = videoUrl;
+        iframe.loading = "eager";
+        iframe.fetchPriority = "high";
+        iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+        iframe.allowFullscreen = true;
+        iframe.addEventListener(
+          "load",
+          () => {
+            iframe.dataset.loaded = "1";
+          },
+          { once: true },
+        );
+
+        media.innerHTML = "";
+        media.appendChild(iframe);
+        tile.dataset.hydrated = "1";
+      }
+
+      function showViewerLoader() {
+        viewerLoading.hidden = false;
+      }
+
+      function hideViewerLoader() {
+        viewerLoading.hidden = true;
+      }
+
+      function waitForIframeReady(iframe) {
+        if (!iframe) {
+          hideViewerLoader();
+          return;
+        }
+
+        if (iframe.dataset.loaded === "1") {
+          hideViewerLoader();
+          return;
+        }
+
+        showViewerLoader();
+        iframe.addEventListener(
+          "load",
+          () => {
+            iframe.dataset.loaded = "1";
+            hideViewerLoader();
+          },
+          { once: true },
+        );
+      }
+
+      function preloadInitialVisibleVideos() {
+        const MAX_EAGER = 3;
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+              .slice(0, MAX_EAGER)
+              .forEach((entry) => {
+                const tile = entry.target;
+                const payload = eagerQueue.find((item) => item.tile === tile);
+                if (!payload) {
+                  return;
+                }
+
+                hydrateTileVideoEager(payload.tile, payload.videoUrl, payload.title);
+                observer.unobserve(tile);
+              });
+          },
+          {
+            root: null,
+            threshold: [0.3, 0.6, 0.9],
+            rootMargin: "120px 0px",
+          },
+        );
+
+        eagerQueue.slice(0, MAX_EAGER).forEach((item) => {
+          observer.observe(item.tile);
+        });
       }
 
       function startProgressiveHydration() {
@@ -475,22 +624,58 @@
         `;
 
         const nameEl = tile.querySelector("[data-open-viewer='true']");
+        const mediaEl = tile.querySelector(".media");
+
+        function hydrateNow() {
+          hydrateTileVideo(tile, videoUrl, material.name);
+        }
+
         function openViewer() {
+          hydrateNow();
           viewerTitle.textContent = `${material.category} - ${material.name}`;
-          viewerMedia.innerHTML = `
-            <iframe
-              title="${material.name} grand format"
-              src="${videoUrl}"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowfullscreen
-            ></iframe>
-          `;
+          const tileIframe = mediaEl ? mediaEl.querySelector("iframe") : null;
+
+          if (tileIframe) {
+            tileIframe.title = `${material.name} grand format`;
+            viewerMedia.innerHTML = "";
+            viewerMedia.appendChild(tileIframe);
+            viewerMedia.appendChild(viewerLoading);
+            activeViewerSession = { originMedia: mediaEl, iframe: tileIframe };
+            waitForIframeReady(tileIframe);
+          } else {
+            showViewerLoader();
+            viewerMedia.innerHTML = `
+              <iframe
+                title="${material.name} grand format"
+                src="${videoUrl}"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            `;
+            const fallbackIframe = viewerMedia.querySelector("iframe");
+            if (fallbackIframe) {
+              fallbackIframe.addEventListener(
+                "load",
+                () => {
+                  fallbackIframe.dataset.loaded = "1";
+                  hideViewerLoader();
+                },
+                { once: true },
+              );
+            }
+            viewerMedia.appendChild(viewerLoading);
+            activeViewerSession = null;
+          }
+
           viewerOverlay.classList.add("is-open");
           viewerOverlay.setAttribute("aria-hidden", "false");
           document.body.style.overflow = "hidden";
         }
 
         nameEl.addEventListener("click", openViewer);
+        nameEl.addEventListener("mouseenter", hydrateNow, { passive: true });
+        nameEl.addEventListener("focus", hydrateNow, { passive: true });
+        nameEl.addEventListener("touchstart", hydrateNow, { passive: true });
         nameEl.addEventListener("keydown", (event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
@@ -504,13 +689,28 @@
           title: material.name,
         });
 
+        eagerQueue.push({
+          tile,
+          videoUrl,
+          title: material.name,
+        });
+
         return tile;
       }
 
       function closeViewer() {
         viewerOverlay.classList.remove("is-open");
         viewerOverlay.setAttribute("aria-hidden", "true");
+
+        if (activeViewerSession && activeViewerSession.originMedia && activeViewerSession.iframe) {
+          activeViewerSession.originMedia.innerHTML = "";
+          activeViewerSession.originMedia.appendChild(activeViewerSession.iframe);
+          activeViewerSession = null;
+        }
+
         viewerMedia.innerHTML = "";
+        viewerMedia.appendChild(viewerLoading);
+        hideViewerLoader();
         document.body.style.overflow = "";
       }
 
@@ -540,7 +740,9 @@
         });
       }
 
+      warmupVideoHosts();
       renderBoard();
+      preloadInitialVisibleVideos();
       startProgressiveHydration();
 
       viewerClose.addEventListener("click", closeViewer);

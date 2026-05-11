@@ -281,12 +281,42 @@
         border-radius: 12px;
         overflow: hidden;
         background: #000;
+        position: relative;
       }
 
       .viewer-media iframe {
         width: 100%;
         height: 100%;
         border: 0;
+      }
+
+      .viewer-loading {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at center, rgba(18, 24, 22, 0.35), rgba(6, 8, 8, 0.76));
+        transition: opacity 180ms ease;
+      }
+
+      .viewer-loading[hidden] {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .viewer-loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        border-top-color: #d5efe5;
+        border-radius: 50%;
+        animation: spin 750ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       @media (max-width: 640px) {
@@ -316,7 +346,7 @@
         }
       }
     </style>
-    <script type="module" crossorigin src="/deco-3d---Videos/assets/index-DGDxigMP.js"></script>
+    <script type="module" crossorigin src="/deco-3d---Videos/assets/index-riBLJXhL.js"></script>
   </head>
   <body>
     <main class="page">
@@ -334,7 +364,11 @@
           <h2 class="viewer-title" id="viewerTitle"></h2>
           <button class="viewer-close" id="viewerClose" type="button">Fermer</button>
         </div>
-        <div class="viewer-media" id="viewerMedia"></div>
+        <div class="viewer-media" id="viewerMedia">
+          <div class="viewer-loading" id="viewerLoading" hidden aria-hidden="true">
+            <span class="viewer-loading-spinner" aria-label="Chargement"></span>
+          </div>
+        </div>
       </div>
     </div>
 

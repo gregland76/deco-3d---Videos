@@ -31,19 +31,24 @@ function clearViewerMedia() {
 /**
  * @param {{ name: string, category: string }} material
  * @param {string} videoUrl
+ * @param {string} [videoFilter]
  */
-export function openViewer(material, videoUrl) {
+export function openViewer(material, videoUrl, videoFilter) {
   titleEl.textContent = `${material.category} — ${material.name}`;
   clearViewerMedia();
   showLoader();
 
-  const iframe = document.createElement("iframe");
-  iframe.title = `${material.name} grand format`;
-  iframe.src = videoUrl;
-  iframe.allow = "autoplay; encrypted-media; picture-in-picture";
-  iframe.allowFullscreen = true;
-  iframe.addEventListener("load", () => hideLoader(), { once: true });
-  mediaEl.insertBefore(iframe, loadingEl);
+  const video = document.createElement("video");
+  video.src = videoUrl;
+  video.controls = true;
+  video.autoplay = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.style.width = "100%";
+  video.style.height = "100%";
+  if (videoFilter) video.style.filter = videoFilter;
+  video.addEventListener("canplay", () => hideLoader(), { once: true });
+  mediaEl.insertBefore(video, loadingEl);
 
   overlay.classList.add("is-open");
   overlay.setAttribute("aria-hidden", "false");

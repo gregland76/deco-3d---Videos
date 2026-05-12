@@ -9,19 +9,8 @@
 
 // ─── Host warm-up ─────────────────────────────────────────────────────────────
 
-function preconnect(url) {
-  const link = document.createElement("link");
-  link.rel = "preconnect";
-  link.href = url;
-  link.crossOrigin = "";
-  document.head.appendChild(link);
-}
-
-export function warmupVideoHosts() {
-  preconnect("https://www.youtube.com");
-  preconnect("https://i.ytimg.com");
-  preconnect("https://www.google.com");
-}
+/** No-op : les vidéos sont locales, aucun préconnect réseau nécessaire. */
+export function warmupVideoHosts() {}
 
 // ─── Preload queue + observer ─────────────────────────────────────────────────
 
@@ -56,15 +45,11 @@ export function resetPreloadQueue() {
  */
 function doPreload(tile, videoUrl, title) {
   if (tile.dataset.preloaded === "1") return;
-  const container = tile.querySelector(".media-preload");
-  if (!container) return;
+  const video = tile.querySelector(".media-thumb");
+  if (!video) return;
 
-  const iframe = document.createElement("iframe");
-  iframe.title = title;
-  iframe.src = videoUrl;
-  iframe.allow = "autoplay; encrypted-media; picture-in-picture";
-  iframe.allowFullscreen = true;
-  container.appendChild(iframe);
+  video.src = videoUrl;
+  video.play().catch(() => {});
   tile.dataset.preloaded = "1";
 }
 

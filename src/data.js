@@ -1,17 +1,14 @@
-// ─── Video IDs ────────────────────────────────────────────────────────────────
+// ─── Local videos ─────────────────────────────────────────────────────────────
 
-export const randomVideoIds = [
-  "aqz-KE-bpKQ",
-  "dQw4w9WgXcQ",
-  "9bZkp7q19f0",
-  "fJ9rUzIMcZQ",
-  "CevxZvSJLk8",
-  "L_jWHffIx5E",
-  "kJQP7kiw5Fk",
-  "OPf0YbXqDm0",
-  "M7lc1UVf-VE",
-  "ScMzIvxBSi4",
-  "ysz5S6PUM-U",
+export const localVideos = [
+  "1.mp4",
+  "2.mp4",
+  "3.mp4",
+  "4.mp4",
+  "5.mp4",
+  "6.mp4",
+  "7.mp4",
+  "8.mp4",
 ];
 
 // ─── Materials catalogue ───────────────────────────────────────────────────────
@@ -60,16 +57,12 @@ export const materials = [
 
 export const allCategories = Array.from(new Set(materials.map((item) => item.category)));
 
-export function pickRandomVideoId() {
-  return randomVideoIds[Math.floor(Math.random() * randomVideoIds.length)];
+export function pickRandomVideo() {
+  return localVideos[Math.floor(Math.random() * localVideos.length)];
 }
 
-export function buildVideoUrl(videoId) {
-  return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&playsinline=1`;
-}
-
-export function buildThumbUrl(videoId) {
-  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+export function buildVideoUrl(filename) {
+  return `${import.meta.env.BASE_URL}Videos/${filename}`;
 }
 
 /**
